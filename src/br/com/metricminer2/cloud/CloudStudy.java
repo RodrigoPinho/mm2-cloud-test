@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import br.com.metricminer2.MetricMiner2;
 import br.com.metricminer2.RepositoryMining;
 import br.com.metricminer2.Study;
 import br.com.metricminer2.metric.ClassLevelMetricCalculator;
@@ -15,18 +16,31 @@ import br.com.metricminer2.scm.commitrange.Commits;
 
 public class CloudStudy implements Study {
 
+	public static void main(String[] args) {
+		new MetricMiner2().start(new CloudStudy());
+	}
+
 	@Override
 	public void execute() {
-		String projects = System.getenv("PROJECTS");
-		String storage = System.getenv("STORAGE");
+		String applicationName = System.getenv("APPLICATION_NAME");
+		String bucketName = System.getenv("BUCKET_NAME");
+		String clientSecretFileName = System.getenv("CLIENTE_SECRET_FILE_NAME");
+		String fileName = System.getenv("FILE_NAME");
+		File dataStoreDir = new File(System.getenv("DATA_STORE_DIR"));
+		String project = System.getenv("PROJECT");
 		ArrayList<String> range = new ArrayList<String>(Arrays.asList(System.getenv("RANGE").split(",")));
-
-		PersistenceMechanism pm = new GoogleStorage(new File("google_storage"), storage);
 		
+
+		PersistenceMechanism pm = new GoogleStorage(applicationName,
+				bucketName, clientSecretFileName, true,
+				fileName, dataStoreDir);
+
 		new RepositoryMining()
-			.in(GitRepository.allProjectsIn(projects))
-			.through(Commits.range(range))
-			.process(new ClassLevelMetricCalculator(new ClassLevelLinesOfCodeFactory()), pm)
-			.mine();
+				.in(GitRepository.singleProject(project))
+				.through(Commits.range(range))
+				.process(
+						new ClassLevelMetricCalculator(
+								new ClassLevelLinesOfCodeFactory()), pm).mine();
 	}
 }
+
