@@ -18,7 +18,7 @@ public class CloudStudy implements Study {
 
 	public static void main(String[] args) {
 		new MetricMiner2().start(new CloudStudy());
-	}
+	} 
 
 	@Override
 	public void execute() {
